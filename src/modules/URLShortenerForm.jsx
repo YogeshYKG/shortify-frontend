@@ -8,45 +8,23 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  Snackbar,
   useTheme,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { QRCodeSVG } from "qrcode.react";
 
+import { verifyUrl } from "../utils/verifyUrl";
+import useSnackbar from "../utils/SnackbarUtils";
+
 const URLShortenerForm = () => {
   const [longUrl, setLongUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [urlError, setUrlError] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [popupOpen, setPopUp] = useState(false);
-  const [popupMessage, setPopUpMessage] = useState("");
 
   const theme = useTheme();
-
-  const validateLongurl = async (validateUrl) => {
-    try {
-      const res = await fetch("http://localhost:8000/validateUrl", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: validateUrl }),
-      });
-      const data = await res.json();
-      if (res.status === 400 && data.code) {
-        setPopUp(true);
-        setPopUpMessage(data.error);
-      }
-      if (res.status === 200) {
-        setPopUp(true);
-        setPopUpMessage(data.message);
-      }
-    } catch (error) {
-      return false;
-    }
-  };
+  const { showMessage, SnackbarComponent } = useSnackbar();
 
   const handleShortClick = () => {
     try {
@@ -54,23 +32,19 @@ const URLShortenerForm = () => {
         `https://short.ly/${Math.random().toString(36).substr(2, 6)}`
       );
     } catch (error) {
-      console.log(
-        "Error in handleShortClick in File : URLShortenerForm.jsx ",
-        error
-      );
+      console.log("Error in handleShortClick", error);
     }
   };
 
   const handleVerifyUrlClick = () => {
-    validateLongurl(longUrl);
+    verifyUrl(longUrl, showMessage); // Use new snackbar utility
   };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shortUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
-    setPopUpMessage("Short Url Copied!");
-    setPopUp(true);
+    showMessage("Short Url Copied!");
   };
 
   return (
@@ -90,21 +64,11 @@ const URLShortenerForm = () => {
         boxShadow: `0 8px 30px rgba(0,0,0,0.1)`,
       }}
     >
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        gutterBottom
-        textAlign="center"
-      >
+      <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center">
         🔗 Shortify Your Link
       </Typography>
 
-      <Typography
-        variant="body1"
-        color="text.secondary"
-        textAlign="center"
-        mb={2}
-      >
+      <Typography variant="body1" color="text.secondary" textAlign="center" mb={2}>
         Paste your long URL and get a short, shareable one instantly.
       </Typography>
 
@@ -118,11 +82,7 @@ const URLShortenerForm = () => {
         helperText={urlError ? "Please enter a valid URL." : ""}
       />
       <Box sx={{ textAlign: "center" }}>
-        <Button
-          variant="text"
-          onClick={handleVerifyUrlClick}
-          sx={{ mt: 2, mb: -2 }}
-        >
+        <Button variant="text" onClick={handleVerifyUrlClick} sx={{ mt: 2, mb: -2 }}>
           ✅ Verify your URL?
         </Button>
       </Box>
@@ -166,10 +126,7 @@ const URLShortenerForm = () => {
               {shortUrl}
             </Typography>
             <Tooltip title={copied ? "Copied!" : "Copy to clipboard"}>
-              <IconButton
-                onClick={handleCopy}
-                color={copied ? "success" : "default"}
-              >
+              <IconButton onClick={handleCopy} color={copied ? "success" : "default"}>
                 {copied ? <CheckCircleIcon /> : <ContentCopyIcon />}
               </IconButton>
             </Tooltip>
@@ -183,24 +140,7 @@ const URLShortenerForm = () => {
         </>
       )}
 
-      <Snackbar
-        open={popupOpen}
-        autoHideDuration={2000}
-        onClose={() => setPopUp(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        ContentProps={{
-          sx: {
-            justifyContent: "center", // Center content horizontally
-            textAlign: "center", // Center the text inside
-            width: "100%", // Optional: helps with centering
-            backgroundColor: (theme) =>
-              theme.palette.mode === "light" ? "#333" : "#fff",
-            color: (theme) =>
-              theme.palette.mode === "light" ? "#fff" : "#000",
-          },
-        }}
-        message={popupMessage}
-      />
+      {SnackbarComponent}
     </Paper>
   );
 };
