@@ -20,6 +20,8 @@ const URLShortenerForm = () => {
   const [shortUrl, setShortUrl] = useState("");
   const [urlError, setUrlError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [popupOpen, setPopUp] = useState(false);
+  const [popupMessage, setPopUpMessage] = useState("");
 
   const theme = useTheme();
 
@@ -32,19 +34,22 @@ const URLShortenerForm = () => {
         },
         body: JSON.stringify({ url: validateUrl }),
       });
-      return res.status === 200;
+      const data = await res.json();
+      if (res.status === 400 && data.code) {
+        setPopUp(true);
+        setPopUpMessage(data.error);
+      }
+      if (res.status === 200) {
+        setPopUp(true);
+        setPopUpMessage(data.message);
+      }
     } catch (error) {
-      console.log(
-        "Error in validateLongurl in File : URLShortenerForm.jsx ",
-        error
-      );
       return false;
     }
   };
 
   const handleShortClick = () => {
     try {
-      setUrlError(validateLongurl(longUrl));
       setShortUrl(
         `https://short.ly/${Math.random().toString(36).substr(2, 6)}`
       );
@@ -56,9 +61,16 @@ const URLShortenerForm = () => {
     }
   };
 
+  const handleVerifyUrlClick = () => {
+    validateLongurl(longUrl);
+  };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(shortUrl);
     setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+    setPopUpMessage("Short Url Copied!");
+    setPopUp(true);
   };
 
   return (
@@ -105,6 +117,15 @@ const URLShortenerForm = () => {
         error={urlError}
         helperText={urlError ? "Please enter a valid URL." : ""}
       />
+      <Box sx={{ textAlign: "center" }}>
+        <Button
+          variant="text"
+          onClick={handleVerifyUrlClick}
+          sx={{ mt: 2, mb: -2 }}
+        >
+          ✅ Verify your URL?
+        </Button>
+      </Box>
 
       <Button
         variant="contained"
@@ -124,10 +145,6 @@ const URLShortenerForm = () => {
       {shortUrl && (
         <>
           <Divider sx={{ my: 4 }} />
-
-          <Typography variant="subtitle2" gutterBottom>
-            Your shortened URL:
-          </Typography>
 
           <Box
             display="flex"
@@ -167,11 +184,22 @@ const URLShortenerForm = () => {
       )}
 
       <Snackbar
-        open={copied}
+        open={popupOpen}
         autoHideDuration={2000}
-        onClose={() => setCopied(false)}
-        message="Short URL copied!"
+        onClose={() => setPopUp(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        ContentProps={{
+          sx: {
+            justifyContent: "center", // Center content horizontally
+            textAlign: "center", // Center the text inside
+            width: "100%", // Optional: helps with centering
+            backgroundColor: (theme) =>
+              theme.palette.mode === "light" ? "#333" : "#fff",
+            color: (theme) =>
+              theme.palette.mode === "light" ? "#fff" : "#000",
+          },
+        }}
+        message={popupMessage}
       />
     </Paper>
   );
