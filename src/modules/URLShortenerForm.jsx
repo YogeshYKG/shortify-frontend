@@ -15,6 +15,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { QRCodeSVG } from "qrcode.react";
 
 import { verifyUrl } from "../utils/verifyUrl";
+import { ShortifyUrl } from "../utils/shortifyUrl";
 import useSnackbar from "../utils/SnackbarUtils";
 
 const URLShortenerForm = () => {
@@ -27,13 +28,7 @@ const URLShortenerForm = () => {
   const { showMessage, SnackbarComponent } = useSnackbar();
 
   const handleShortClick = () => {
-    try {
-      setShortUrl(
-        `https://short.ly/${Math.random().toString(36).substr(2, 6)}`
-      );
-    } catch (error) {
-      console.log("Error in handleShortClick", error);
-    }
+    ShortifyUrl(longUrl, setShortUrl, showMessage);
   };
 
   const handleVerifyUrlClick = () => {
@@ -64,11 +59,21 @@ const URLShortenerForm = () => {
         boxShadow: `0 8px 30px rgba(0,0,0,0.1)`,
       }}
     >
-      <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center">
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        gutterBottom
+        textAlign="center"
+      >
         🔗 Shortify Your Link
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" textAlign="center" mb={2}>
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        textAlign="center"
+        mb={2}
+      >
         Paste your long URL and get a short, shareable one instantly.
       </Typography>
 
@@ -82,7 +87,11 @@ const URLShortenerForm = () => {
         helperText={urlError ? "Please enter a valid URL." : ""}
       />
       <Box sx={{ textAlign: "center" }}>
-        <Button variant="text" onClick={handleVerifyUrlClick} sx={{ mt: 2, mb: -2 }}>
+        <Button
+          variant="text"
+          onClick={handleVerifyUrlClick}
+          sx={{ mt: 2, mb: -2 }}
+        >
           ✅ Verify your URL?
         </Button>
       </Box>
@@ -126,7 +135,10 @@ const URLShortenerForm = () => {
               {shortUrl}
             </Typography>
             <Tooltip title={copied ? "Copied!" : "Copy to clipboard"}>
-              <IconButton onClick={handleCopy} color={copied ? "success" : "default"}>
+              <IconButton
+                onClick={handleCopy}
+                color={copied ? "success" : "default"}
+              >
                 {copied ? <CheckCircleIcon /> : <ContentCopyIcon />}
               </IconButton>
             </Tooltip>

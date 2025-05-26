@@ -1,4 +1,4 @@
-// utils/urlUtils.js
+// utils/verifyUrl.js
 
 export const verifyUrl = async (url, showSnackbarCallback) => {
   try {
@@ -21,6 +21,7 @@ export const verifyUrl = async (url, showSnackbarCallback) => {
       return true;
     }
   } catch (error) {
+    console.log("Error in verifyUrl Function in src/utils", error);
     showSnackbarCallback("Validation failed. Please try again.");
     return false;
   }
